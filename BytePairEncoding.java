@@ -159,7 +159,7 @@ class BytePairEncoding {
     }
 
     
-    public Set<String> tokenize(String text, int k) {
+    public Set<String> train(String text, int k) {
         parseText(text);
 
         while (k-- > 0) {
@@ -178,17 +178,24 @@ class BytePairEncoding {
 
     }
 
-    public void test() {
-
-        // for (String word : corpus.keySet()) {
-        //     System.out.println(word + " " + corpus.get(word));
-        // }
-
-        Iterator<String> it = vocabulary.iterator();
-
-        while (it.hasNext()) {
-            System.out.println(it.next());
+    public List<String> tokenize(String text) throws Exception {
+        if (vocabulary == null) throw new Exception("No training has been done yet");
+        
+        StringBuilder builder = new StringBuilder();
+        final List<String> tokenizedText = new ArrayList<>();
+        
+        for (int i = 0; i < text.length(); i++) {
+            builder.append(text.charAt(i));
+            if (!vocabulary.contains(builder.toString())) {
+                tokenizedText.add(builder.substring(0, builder.length() - 1));
+                builder = new StringBuilder("" + text.charAt(i));
+            }
         }
+    
+        // Add the last accumulated string (subword unit) to the list.
+        tokenizedText.add(builder.toString());
+    
+        return tokenizedText;
     }
 
 }
@@ -197,10 +204,18 @@ class BytePairEncoding {
 class Main {
     public static void main(String args[]) {
 
-        String text = "";
+        String text = "low low low low low lowest lowest newer newer newer newer newer newer wider wider wider new new";
         BytePairEncoding bpe = new BytePairEncoding();
 
-        bpe.tokenize(text, 20);
-        bpe.test();
+        try {
+            bpe.train(text, 10);
+            List<String> tokenizedTest = bpe.tokenize("lower widest");
+
+            System.out.println(tokenizedTest.toString());
+
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 }
